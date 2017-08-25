@@ -1,0 +1,419 @@
+----------------------------------------20170824   ----------------------------------------------------------------------------------
+
+GRUB背景图片制作完整教程
+http://www.linuxidc.com/Linux/2007-09/7735.htm
+
+
+GRUB背景图片介绍
+
+1、GRUB背景图片介绍
+
+这一部分介绍GRUB背景图片的基本信息，如果您只是想知道如何制作一个GRUB背景图片，可以略过此部分。 GRUB使用XPM文件、或用gzip压缩过的XPM文件作为图片背景文件，由menu.lst中的splashimage命令调用。
+
+如果打开一个XPM文件，就不难了解其构成方法：定义一个由字符到颜色的关系表，然后一个字符代表一个像素，组成一幅图片。由此不难想到XPM文件可能具有以下特点：
+
+    * 颜色种类不多（ASCII码种数有限）
+
+    * 文件占用空间较大（未经压缩）
+
+实际上，GRUB使用的图像为14色，尺寸为640x480。
+
+这也就明确了制作GRUB背景图的大致步骤：
+
+    * 改变文件尺寸为640x480
+
+    * 合理减少文件颜色数
+
+使用imagemagick制作grub背景图片
+
+imagemagick可以简单的实现一些图片操作，使用imagemagick制作最为简单：先安装imagemagick，多数发行版的源中提供这一软件，也可以到http://www.imagemagick.org/ 去下载。
+
+安装后，使用convert命令处理图片
+
+ convert 源图片 -resize 640x480! -colors 14 test.xpm
+
+其中test.xpm可以改成自己的文件名。
+
+文件比较大，可以压缩一下。
+
+ gzip test.xpm
+
+这样就生成了一个名为test.xpm.gz的可用于grub背景的文件。把这个文件复制到/boot/grub/ ，如：
+
+# cp test.xpm.gz /boot/grub/
+linux
+
+
+2、启用制作好的背景图片
+
+
+启用制作好的背景图片
+
+grub的配置文件menu.lst，这个文件通常在/boot/grub/中。推荐把生成的背景图也放到这个文件夹。
+
+如果以前就有背景图片，那么在menu.lst查找splashimage，把后面的图片的路径改为新的背景文件的路径。
+
+如果以前没有设置背景图片，那么用你喜欢的编辑器打开/boot/grub/menu.lst（注意要有root权限），在文件上部加入一行，如：
+
+splashimage (hd0,0)/boot/grub/test.xpm.gz
+
+注意把(hd0,0)换成你的根分区编号，保存，就可以了。
+
+提示：
+
+关于Grub磁盘分区表示的详细信息，可参见Grub磁盘分区表示方法。
+
+进一步美化说明
+
+更改了背景图片后，原来的字母颜色可以就需要调整了。请注释掉color语句，并用background和foreground语句设置前景、背景颜色，如：
+
+background bbbbbb
+
+foreground 3355aa
+
+
+3、制作GRUB启动背景图片
+
+制作自己个性的启动GRUB启动背景图片
+
+3.1　找一张漂亮的美女图片mm.jpg,将一图片转化成640*480,14色的XPM文件：
+
+　　　#convert mmjpg -colors 14 -geometry 640x480! mm.xpm
+
+3.2 压缩生成的xpm文件，使用gzip
+
+#gzip -9 mm.xpm
+
+3.3 将mmxpm.gz拷到/boot/grub下
+
+3.4　修改/boot/grub/menu.lst
+
+splashimage=(hd0,*)/grub/mm.xpm.gz
+
+改好以后，保存，好啦，这样你就拥用你个性的启动画面啦！
+
+关于GRUB背景图片DIY的问题
+
+<div class=t_msgfont id=message2818866>使用命令虽然方便,但是也有其不能预览的缺点.
+
+使用gimp制作.
+
+gimp->;打开文件->;在文件上电右键->;选择模式->;索引->;颜色数改为14
+
+点右键->;图像->;缩放图像->;改为640X480
+
+而后保存的时候选择类型 .xpm
+
+gzip -9 *.xpm
+
+cp *.xpm.gz /boot/grub/
+
+vi menu.lst 将其中含有*.xpm.gz的文件给为你刚cp 的那个文件即可.
+
+ok开机重启.</div>
+
+在使用RedHat的时候我们可以看到系统起动的时候grub是有背景图片的，我们也可以给Ubuntu添加一个背景图片。
+
+步骤如下：
+
+1、创建一个存放grub背景文件的文件夹。比如在 /boot/grub/ 下创建文件夹 splashimages
+
+sudo cd /boot/grub &amp;&amp; mkdir splashimages
+
+2、把下载的grub背景文件放在 splashimages文件夹下
+
+sudo cp *.xpm.gz /boot/grub/splashimages/
+
+3、备份和修改配置文件 （/boot/grub/menu.lst）
+
+sudo cp /boot/grub/menu.lst /boot/grub/menu-bak.lst
+
+sudo gedit /boot/grub/menu.lst
+
+找到这样的一行
+
+# Pretty colours
+
+#color cyan/blue white/blue
+
+在其下记入这样的一行：
+
+splashimage=(hd0,7)/boot/grub/splashimages/splash.xpm.gz
+
+其中(hd0,7)需要按照自己的实际情况进行修改，hd0是第一快硬盘，7是你的挂载在boot目录下的分区，一般这个可以在文件的下面title一节看到。splash.xpm是你的文件名。
+
+重新启动系统就能看到背景了。
+
+
+
+4、GRUB背景图片制作说明
+
+GRUB背景图片制作说明：
+
+1)、要求它的解析度在640×480或之上。虽然从道理上讲小于这个尺寸也没关系，因为可以把它扩张为640×480，但是这样会造成比较严重的画质损失，所以最好不要小于这个尺寸。
+
+2)、 GRUB使用压缩了的XPM图像格式，而比较常见的图片格式是 BMP、JPG、GIF和PNG之类的，所以需要将图片格式转换成XPM。
+
+可能有人想到了使用GIMP，但是GIMP使用起来相对麻烦，而且如果没有安装 X-Window的话就无法使用GIMP了。所以这里建议使用命令convert进行图片格式转换（可以使用man convert命令详细阅读其使用手册）。简单说一下convert使用方法，比如要将image.jpg转换为image.xpm，使用命令如下：
+
+sudo convert -geometry 640x480 -colors 14 image.jpg image.xpm
+
+如果你的系统中没有这个命令，你可以安装imagemagick这个软件包
+
+sudo apt-get install imagemagick
+
+这个命令在这个包中。这个命令是把image.jpg转变尺寸为640×480，色深是14的image.xpm。注意，命令行中的640和480之间是小写字母“x”，不要写错。另外，GRUB要求图片色深必须是14。　　
+
+所以需要进行上述的转换步骤以达到GRUB的要求。接下来压缩这幅图片,使用下面的命令：
+
+＃gzip -9 image.xpm
+
+结果生成了image.xpm.gz 
+
+
+
+
+
+
+
+
+
+
+
+-----------------------20170823  OK--------------------------------------------------------------------------
+
+
+CentOS 6.5 修复grub引导
+
+http://www.linuxidc.com/Linux/2016-07/133521.htm
+
+在使用Linux的过程中，难免会出现开机提示grub >而无法启动，可能是系统中/boot/grub文件丢失等原因造成的，当出现此问题的时候只要系统分区没有格式化一般是可以修复的。下面就以虚拟 机为例，删除/boot分区，在linux救援模式下重新修复：
+
+1、实验使用的系统为CentOS 6.5 x86_641、删除boot分区：会导致grub和linu内核丢失，然后重启：
+rm -rf /boot
+reboot
+
+此时系统重启后已经完全无法再次启动，如下：
+
+2、使用光盘镜像引导系统，并选择救援模式启动：  Rescue installed system
+提示将系统挂载至/mnt/sysimage：
+
+3、将根切换至之前的系统：   
+chroot /mnt/sysimage
+
+4、创建光盘挂载目录并挂载光盘：
+mkdir /iso
+mount /dev/cdrom /iso/
+cd /iso/
+ls
+
+
+5、安装kerner包，会生成/boo目录以及内核及initramfs：
+cd /boot
+cd /iso/Packages/
+rpm -ivh kernel-2.6.32-431.e16.x86_64.rpm --force
+ls /boot/
+
+
+6、、修复grub，首先要查看一下自己的磁盘分区情况，以确认grub安装在那个磁盘上：
+fdisk -l
+
+
+为第一块磁盘安装grub引导：
+grub-install --root-directory=/ /dev/sda
+
+
+7、确认geub目录已经生成：
+ls /boot/grub/
+
+
+8、此时系统仍然无法正常启动，因为确认grub.conf文件，可以尝试重启看一下界面：
+
+
+9、在grub界面指定kernel和initramfs所在路径启动，可以操作的命令有：
+grub>kernel 内核文件 //设置内核文件的路径
+grub>initrd 镜像文件名 //设置镜像路径
+grub>boot //启动指定操作系统
+grub>help //获取帮助
+grub>reboot //重启系统
+grub>md5-crypt //生成口令的MD5密文
+grub>setup (hdx[,y]) //安装GURB到MBR/指定分区的引导扇区中
+grub>hide 分区 //隐藏分区
+grub>cat 文件名 //显示文件内容
+grub>find 文件名 //查找文件
+grub>rootnoveify (hdx,y) //设置根设备所对应的分区,但不检查加载点
+grub>chainloader 文件名 //加载指定的文件 在此指定linux内核和initramfs文件路径，并启动linux系统：
+
+注：
+grub> root (hd0,1) #是说跟分区在第一块硬盘的第二个分区
+grub> kernel /boot/vmlinuz-2.6.32-431.el6.x86_64 ro root=/dev/sda2 #指明内核路径和根分区
+grub> initrd /boot/initramfs-2.6.32-431.el6.x86_64.img #指明initramfs路径启动系统加载驱动
+grub> boot #启动上面指定的系统，如果是reboot就等于重启整个系统了，刚才的设置就失效了 此时已经可以引导系统启动了，但是还没有grub.conf文件,可以在系统启动后编写一个grub.conf文件即可
+
+11、编写grub.conf文件： 可以看到，此时系统是没有grub.conf文件的，如果重启系统后就无法正常开机了，除非在grub界面指定内核和驱动文件的路径：
+
+12、创建grub.conf文件：
+default=0
+timeout=5
+splashimage=(hd0,1)/boot/splash.xpm.gz
+title Re-system Centos 6.5
+		root (hd0,1)
+		kernel /boot/vmlinuz-2.6.32-431.el6.x86_64 ro root=UUID=32a05299-25eb-4123-a604-dfb4a9c0eff6 rhgb quiet
+		kernel /boot/vmlinuz-2.6.32-431.el6.x86_64 ro root=/dev/sda2 rhgb quiet
+		initrd /boot/initramfs-2.6.32-431.el6.x86_64.img
+
+13、
+注：kernel 一行后面root=/dev/sda2是指的根分区所在的磁盘，假如boot分区和根分区没有在一起，则grub.conf文件要写明boot分区和根分 区，另外不推荐安装磁盘分区的方式写根分区的路径，因为有可能系统重启后磁盘好会出现变化，因此推荐使用UUID的方式表明，每个分区都有自己的 UUID，是在整个系统中唯一的身份标示，可以使用命令blkid /dev/sda2获取。
+
+14、最后重启系统，以硬盘直接启动测试。系统已经正常启动完成！
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--------------------------20170823.2  OK---------------------------------
+
+
+
+
+CentOS修改grub启动引导
+用U盘安装CentOS，如果使用默认的boot挂载，会将引导安装在U盘上，必须用U盘启动，遇到这种情况可以通过grub手动写入引导。（我在另一台服务器上安装时手动设置boot但是装好停留在Grub无法启动，这个没深入研究了，在这里就先说手动修改引导方法，给遇到同样问题的人参考，如有错误，欢迎拍砖）
+
+进入grub
+
+
+    [root@mfsmaster home]# /sbin/grub  
+
+找到grub的位置
+
+
+    grub> find /grub/stage1     
+    (hd1,0)    
+
+如果提示Error 15: File not found，则尝试 find /boot/grub/stage1 或者 find stage1
+（hd1,0)代表的第二个硬盘的第一个分区，相应的(hd0,0)代表的就是第一个硬盘第一个分区，这一步其实就是告诉我们引导被写入了U盘中= =
+
+下面进入正题
+
+我们将引导写入(hd0,0)，即第一个磁盘第一个分区中，我在这里的系统盘是这个，具体可以在linux下用df指令查看
+
+
+    grub> root (hd0,0)     
+    Filesystem type is ext2fs, partition type 0x83    
+        
+    grub> setup (hd0)     
+    Checking if "/boot/grub/stage1" exists... no     
+    Checking if "/grub/stage1" exists... yes     
+    Checking if "/grub/stage2" exists... yes     
+    Checking if "/grub/e2fs_stage1_5" exists... yes     
+    Running "embed /grub/e2fs_stage1_5 (hd0)"...  15 sectors are embedded.     
+    succeeded     
+    Running "install /grub/stage1 (hd0) (hd0)1+15 p (hd0,0)/grub/stage2 /grub/grub.conf"... succeeded     
+    Done.     
+        
+    grub> reboot    
+
+后修改启动的 /boot/grub/menu.lst 或者 /boot/grub/grub.conf  CentOS下这两个文件是绑定的，改一个即可
+
+
+    [root@mfsmaster home]# vi /boot/grub/menu.lst     
+        
+    # grub.conf generated by anaconda     
+    #     
+    # Note that you do not have to rerun grub after making changes to this file     
+    # NOTICE:  You have a /boot partition.  This means that     
+    #          all kernel and initrd paths are relative to /boot/, eg.     
+    #          root (hd1,0)     
+    #          kernel /vmlinuz-version ro root=/dev/VolGroup00/LogVol00     
+    #          initrd /initrd-version.img     
+    #boot=/dev/sdb     
+    default=0    
+    timeout=5    
+    splashimage=(hd0,0)/grub/splash.xpm.gz     
+    hiddenmenu     
+    title CentOS (2.6.18-274.3.1.el5)     
+            root (hd0,0)     
+            kernel /vmlinuz-2.6.18-274.3.1.el5 ro root=/dev/VolGroup00/LogVol00     
+            initrd /initrd-2.6.18-274.3.1.el5.img     
+    title CentOS (2.6.18-238.el5)     
+            root (hd0,0)     
+            kernel /vmlinuz-2.6.18-238.el5 ro root=/dev/VolGroup00/LogVol00     
+            initrd /initrd-2.6.18-238.el5.img     
+    title Other     
+            rootnoverify (hd0,3)     
+            chainloader +1    
+
+把当中的(hd1,0)都改成(hd0,0)，splashimage=(hd0,0)/grub/splash.xpm.gz 这个是开机引导背景图片的位置，改不改都关系不大，重启CentOS就可以正常启动了
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-------------------20170823.1  OK--------------------
+CentOS6.5_x64修改grub的启动顺序  
+ http://blog.csdn.net/hanfenglearn/article/details/41775627
+
+1.已root身份操作
+2.查找grub.conf的位置
+命令：whereis grub.conf
+结果：grub: /sbin/grub /etc/grub.conf /usr/share/grub /usr/share/man/man8/grub.8.gz
+如图：
+ 3.打开grub.conf文件：vim /etc/grub.conf
+如图：
+ 解释：
+其中，红色部分是我们安装的两个系统，他们均已“title”开头，我们修改默认启动的操作系统，只需要将“default”的值改为对应的系统索引编号值(笔者自己起的名字)即可，这个索引编号值类似于数组的索引值，第一个为0，依次类推，我们在这，默认启动第二个操作系统，只需要经“default”的值改为1，其中，“timeout”是指我们每次引导操作系统的等待时间，即等待用户按下任意键的时间，单位是秒，其中内容：
+title：引导时显示的标题，我们可以修改为任意有意义的名称。
+root：指定应该从哪个硬盘分区进行引导，这里是第一个硬盘的第一个主分区。
+kernel：指定了内核文件的位置。
+命令：
+（1）进入insert模式下。
+（2）将“default”值改为1。
+（3）进入命令模式下，执行：wq，保存退出。
+如图：
+ 4.重启
+命名：reboot（root身份）
+解释：重新启动。
+5.注意
+再grub模式下，按c键可以进入Grub的命令模式。
+如图：
+按下esc键就可以退出该模式
+
